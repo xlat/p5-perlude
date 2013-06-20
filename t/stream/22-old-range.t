@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use 5.10.0;
-use Test::More skip_all => 'range not implemented';
+use Test::More;# skip_all => 'range not implemented';
 use Perlude qw/ fold range /;
 
 sub fold_for {
@@ -15,4 +15,6 @@ fold_for [1,1]   , [1]              , "range with 1 element"     ;
 fold_for [0,9,2] , [0, 2, 4, 6, 8]  , "range with step 2"        ;
 
 # plan skip_all => "i don't know what to do with inverted min,max";
-# fold_for [5,1]   , []             , "inverted range is empty"  ;
+fold_for [5,1]   , []             , "inverted range is empty"  ;
+
+done_testing;

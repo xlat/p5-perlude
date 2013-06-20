@@ -15,6 +15,7 @@ our @EXPORT = qw<
     records lines 
     pairs
     nth
+    takeWhileUnshift dropWhile
 >; 
 
 # ABSTRACT: Shell and Powershell pipes, haskell keywords mixed with the awesomeness of perl. forget shell scrpting now! 
@@ -83,6 +84,20 @@ sub takeWhile (&$) {
     }
 }
 
+sub takeWhileUnshift (&\$) {
+    my ($cond, $iref ) = @_;
+	my $i = ref $iref eq 'REF' ? $$iref : do{ my $o=$iref; $iref=\$o; $o };
+    sub {
+        ( my @v = $i->() ) or return;
+        return $cond->() ? @v : do{ 
+		    #patch $iref so it can provide again $_ !
+		    my $v = $_;
+		    $$iref = sub{ $$iref = $i; $v }; 
+			()
+		} for @v;
+    }
+}
+
 sub filter (&$) {
     my ( $cond, $i ) = @_;
     $i = _buffer $i;
@@ -108,6 +123,21 @@ sub drop ($$) {
     $i = _buffer $i;
     fold take $n, $i;
     $i;
+}
+
+sub dropWhile (&$){
+  my ($c, $l) = @_;
+  sub {
+    my @v;
+    do {
+      unless (@v) {
+         ( @v ) = $l->() // return;
+      }
+      $_ = shift @v;
+    } while ( $c->() );
+    unshift @v, $_;
+    @v;
+  }
 }
 
 sub apply (&$) {
